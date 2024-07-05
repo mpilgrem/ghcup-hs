@@ -69,14 +69,15 @@ import           Text.PrettyPrint.HughesPJClass ( prettyShow )
 import           Text.Regex.Posix
 import           URI.ByteString
 
-import qualified Crypto.Hash.SHA256            as SHA256
-import qualified Data.ByteString.Base16        as B16
+import qualified Data.Digest.Pure.SHA          as SHA256
+import qualified Data.ByteString.Base16.Lazy   as B16
 import qualified Data.ByteString               as B
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.Map.Strict               as Map
 import qualified Data.Text                     as T
+import qualified Data.Text.Lazy                as TL
 import qualified Data.Text.IO                  as T
-import qualified Data.Text.Encoding            as E
+import qualified Data.Text.Lazy.Encoding       as EL
 import qualified Text.Megaparsec               as MP
 
 
@@ -1209,12 +1210,13 @@ compileGHC targetGhc crossTarget vps bstrap jobs mbuildConfig patches aargs buil
     pfreq <- lift getPlatformReq
     c       <- liftIO $ BL.readFile (workdir </> tar)
     cDigest <-
-      fmap (T.take 8)
+      fmap (TL.take 8)
       . lift
       . throwEither
-      . E.decodeUtf8'
+      . EL.decodeUtf8'
       . B16.encode
-      . SHA256.hashlazy
+      . SHA256.bytestringDigest
+      . SHA256.sha256
       $ c
     cTime <- liftIO getCurrentTime
     let tarName = makeValid ("ghc-"
@@ -1224,7 +1226,7 @@ compileGHC targetGhc crossTarget vps bstrap jobs mbuildConfig patches aargs buil
                             <> "-"
                             <> iso8601Show cTime
                             <> "-"
-                            <> T.unpack cDigest
+                            <> TL.unpack cDigest
                             <> ".tar"
                             <> takeExtension tar)
     let tarPath = fromGHCupPath cacheDir </> tarName

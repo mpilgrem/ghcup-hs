@@ -80,14 +80,16 @@ import           System.IO.Error
 import           System.IO.Temp
 import           URI.ByteString          hiding (parseURI)
 
-import qualified Crypto.Hash.SHA256            as SHA256
+import qualified Data.Digest.Pure.SHA          as SHA256
 import qualified Data.ByteString               as B
-import qualified Data.ByteString.Base16        as B16
+import qualified Data.ByteString.Base16.Lazy   as B16
 import qualified Data.ByteString.Lazy          as L
 import qualified Data.Map.Strict               as M
 import qualified Data.Text                     as T
+import qualified Data.Text.Lazy                as TL
 import qualified Data.Text.IO                  as T
 import qualified Data.Text.Encoding            as E
+import qualified Data.Text.Lazy.Encoding       as EL
 import qualified Data.Yaml.Aeson               as Y
 
 
@@ -807,7 +809,7 @@ checkDigest eDigest file = do
     let p' = takeFileName file
     lift $ logInfo $ "verifying digest of: " <> T.pack p'
     c <- liftIO $ L.readFile file
-    cDigest <- throwEither . E.decodeUtf8' . B16.encode . SHA256.hashlazy $ c
+    cDigest <- fmap TL.toStrict . throwEither . EL.decodeUtf8' . B16.encode . SHA256.bytestringDigest . SHA256.sha256 $ c
     when ((cDigest /= eDigest) && verify) $ throwE (DigestError file cDigest eDigest)
 
 checkCSize :: ( MonadReader env m

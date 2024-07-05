@@ -185,7 +185,7 @@ library
     , casing                ^>=0.1.4.1
     , containers            ^>=0.6
     , conduit               ^>=1.3
-    , cryptohash-sha256     ^>=0.11.101.0
+    , SHA                   ^>=1.6.4.4
     , deepseq               ^>=1.4.4.0
     , directory             ^>=1.3.6.0
     , disk-free-space       ^>=0.1.0.1
